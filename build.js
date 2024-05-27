@@ -2,9 +2,10 @@ import esbuild from "esbuild";
 
 const args = process.argv.slice();
 const isDev = args.includes("--dev");
+const isTsx = args.includes("--tsx");
 
 const ctx = await esbuild.context({
-  entryPoints: ["./example/src/main.js"],
+  entryPoints: [`./example/src/main.${isTsx ? "tsx" : "js"}`],
   format: "esm",
   bundle: true,
   logLevel: "info",
