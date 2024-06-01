@@ -1,3 +1,5 @@
+import { JSX } from "preact"
+
 type CalendarValues = {
   single: Date
   range: [Date, Date]
@@ -15,3 +17,5 @@ export type CalendarProps<M extends CalendarMode = CalendarMode> = {
   mode?: M
   onSelect?: (nextValue: CalendarValue<M>) => void
 }
+
+export const Calendar: <M extends CalendarMode>(props: CalendarProps<M>) => JSX.Element

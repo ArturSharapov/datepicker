@@ -1,10 +1,16 @@
 import { signal } from "@preact/signals";
-import { Calendar } from "../../src/index.js";
+import { Calendar, CalendarMode, CalendarValue } from "../../src";
 import { render } from "preact";
 import "./main.css";
 
-const mode = signal("single");
-const selectedDate = signal();
+const mode = signal<CalendarMode>("single");
+const selectedDate = signal<CalendarValue | undefined>(undefined);
+
+const isMode = <M extends CalendarMode>(
+  mode: CalendarMode,
+  _value: CalendarValue | undefined,
+  expected: M
+): _value is CalendarValue<M> => mode == expected;
 
 const App = () => {
   return (
@@ -17,10 +23,8 @@ const App = () => {
               value="single"
               checked={mode.value == "single"}
               type="radio"
-              onChange={(e) => {
-                e.target.checked && (mode.value = e.target.value);
-              }}
-            />{" "}
+              onChange={e => e.currentTarget.checked && (mode.value = "single")}
+            />
             Single
           </label>
           <label>
@@ -29,17 +33,16 @@ const App = () => {
               value="range"
               checked={mode.value == "range"}
               type="radio"
-              onChange={(e) =>
-                e.target.checked && (mode.value = e.target.value)
-              }
-            />{" "}
+              onChange={e => e.currentTarget.checked && (mode.value = "range")}
+            />
             Range
           </label>
         </div>
         <Calendar
           mode={mode.value}
           value={selectedDate.value}
-          onSelect={(value) => {
+          onSelect={value => {
+            if (Array.isArray(value) && value[1] < value[0]) value = [value[1], value[0]];
             selectedDate.value = value;
           }}
           weekdayFormat="narrow"
@@ -60,7 +63,7 @@ const App = () => {
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                 <path d="M9 6l6 6l-6 6" />
               </svg>
-            );
+            )
           }}
           arrowLeft={() => {
             return (
@@ -79,36 +82,29 @@ const App = () => {
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                 <path d="M15 6l-6 6l6 6" />
               </svg>
-            );
+            )
           }}
         />
         <div>
-          {mode == "single" && (
+          {isMode(mode.value, selectedDate.value, "single") && (
             <p class="selected-text">
               <strong class="header">Selected: </strong>
-              {selectedDate.value
-                ? new Date(selectedDate.value).toLocaleString()
-                : "None"}
+              {selectedDate.value ? selectedDate.value.toLocaleString() : "None"}
             </p>
           )}
         </div>
         <div>
-          {mode == "range" ? (
+          {isMode(mode.value, selectedDate.value, "range") ? (
             <p class="selected-text">
               <strong class="header">Selected Range: </strong>
-              {selectedDate?.value?.length == 2
-                ? new Date(selectedDate.value[0]).toLocaleString()
-                : "None"}{" "}
-              -{" "}
-              {selectedDate?.value?.length == 2
-                ? new Date(selectedDate.value[1]).toLocaleString()
-                : "None"}
+              {selectedDate?.value?.length == 2 ? selectedDate.value[0].toLocaleString() : "None"} -{" "}
+              {selectedDate?.value?.length == 2 ? selectedDate.value[1].toLocaleString() : "None"}
             </p>
           ) : null}
         </div>
       </div>
     </>
-  );
+  )
 };
 
-render(<App />, document.querySelector("#app"));
+render(<App />, document.querySelector("#app")!);
